@@ -1,21 +1,45 @@
+/* styles.css */
 body {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    height: 100vh;
     margin: 0;
     font-family: Arial, sans-serif;
-    background-color: #1c1c1c;
+}
+
+.fixed-ui {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 250px;
+    height: 100vh; /* Full height */
+    padding: 10px;
+    background-color: rgba(255, 255, 255, 0.9);
+    border-right: 2px solid #ccc;
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.2);
+    z-index: 10;
+    overflow-y: auto; /* Enable scrolling if content overflows */
+}
+
+#fractalCanvas {
+    margin-left: 250px; /* Ensure canvas is not covered */
+    width: calc(100% - 250px);
+    height: 100vh;
+    background-color: #000;
+}
+
+#progressContainer {
+    margin-top: 10px;
+    height: 20px;
+    background-color: #f3f3f3;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    overflow: hidden;
+}
+
+#progressBar {
+    height: 100%;
+    width: 0;
+    background-color: #4caf50;
+    text-align: center;
+    line-height: 20px;
     color: white;
-}
-
-h1 {
-    margin-bottom: 20px;
-}
-
-canvas {
-    border: 1px solid white;
-    width: 600px;
-    height: 600px;
+    transition: width 0.2s;
 }

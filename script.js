@@ -1,60 +1,177 @@
 const canvas = document.getElementById('fractalCanvas');
 const ctx = canvas.getContext('2d');
+const iterationsSlider = document.getElementById('iterationsSlider');
+const iterationsValue = document.getElementById('iterationsValue');
+const progressBar = document.getElementById('progressBar');
+const worker = new Worker('fractalWorker.js');
 
-canvas.width = 600;
-canvas.height = 600;
+const canvasWidth = 300; // Fixed width of the canvas
+const canvasHeight = 300; // Fixed height of the canvas
+const aspectRatio = canvasWidth / canvasHeight; // Aspect ratio for the fractal calculation
 
-let maxIterations = 100;
-let zoom = 200;
-let panX = 2;
-let panY = 1.5;
+let maxIterations = 10; // Default iterations set to 10
+let zoom = 200; // Default zoom level
+let panX = 0; // Centered panning
+let panY = 0; // Centered panning
+let fractalFormula = "zx * zx - zy * zy + cx"; // Default formula
 
-// Function to draw the fractal
+let isPanning = false;
+let startX, startY;
+let needsRendering = false;
+
+iterationsSlider.min = 10; // Minimum value for iterations
+iterationsSlider.max = 1000; // Maximum value for iterations
+iterationsSlider.value = maxIterations; // Set default value
+iterationsValue.textContent = maxIterations; // Display default value
+
+function updateProgressBar(percentage) {
+    progressBar.style.width = `${percentage}%`;
+    progressBar.textContent = `${Math.round(percentage)}%`;
+}
+
 function drawFractal() {
-    for (let x = 0; x < canvas.width; x++) {
-        for (let y = 0; y < canvas.height; y++) {
-            let zx = (x / zoom) - panX;
-            let zy = (y / zoom) - panY;
-            let cx = zx;
-            let cy = zy;
+    if (!needsRendering) return;
+    needsRendering = false;
 
-            let iteration = 0;
+    // Calculate adjusted zoom and pan
+    const adjustedZoom = zoom;
+    const adjustedPanX = panX;
+    const adjustedPanY = panY;
 
-            while (zx * zx + zy * zy < 4 && iteration < maxIterations) {
-                let xtemp = zx * zx - zy * zy + cx;
-                zy = 2 * zx * zy + cy;
-                zx = xtemp;
-                iteration++;
-            }
+    worker.postMessage({
+        zoom: adjustedZoom,
+        panX: adjustedPanX,
+        panY: adjustedPanY,
+        maxIterations: maxIterations,
+        width: canvas.width,
+        height: canvas.height,
+        formula: fractalFormula
+    });
+}
 
-            const color = iteration === maxIterations ? 0 : (iteration * 255 / maxIterations);
+worker.onmessage = function (e) {
+    if (e.data.error) {
+        console.error(e.data.error);
+        alert("Invalid formula.");
+        return;
+    }
 
-            ctx.fillStyle = `rgb(${color}, ${color}, ${color})`;
-            ctx.fillRect(x, y, 1, 1);
+    if (e.data.progress !== undefined) {
+        updateProgressBar(e.data.progress);
+    }
+
+    if (e.data.imageData) {
+        const imgData = new ImageData(new Uint8ClampedArray(e.data.imageData), canvas.width, canvas.height);
+        ctx.putImageData(imgData, 0, 0);
+        updateProgressBar(100); // Ensure progress bar reaches 100% when done
+    }
+};
+
+function applyFormula() {
+    const formulaInput = document.getElementById('formulaInput').value;
+    if (formulaInput) {
+        try {
+            new Function('zx', 'zy', 'cx', 'cy', `return ${formulaInput};`);
+            fractalFormula = formulaInput;
+            needsRendering = true;
+            requestAnimationFrame(drawFractal);
+        } catch (e) {
+            console.error("Invalid formula:", e);
+            alert("Invalid formula. Please check the syntax.");
         }
     }
 }
 
-// Redraw the fractal when zooming in/out or panning
-function updateFractal(e) {
+function updateFractalZoom(e) {
+    e.preventDefault();
+    const zoomFactor = 1.1;
+    const rect = canvas.getBoundingClientRect();
+
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+
+    // Zoom in or out
     if (e.deltaY < 0) {
-        zoom *= 1.2; // Zoom in
+        zoom *= zoomFactor;
     } else {
-        zoom /= 1.2; // Zoom out
+        zoom /= zoomFactor;
     }
 
-    // Update pan values based on mouse position
-    panX += (e.offsetX - canvas.width / 2) / zoom;
-    panY += (e.offsetY - canvas.height / 2) / zoom;
+    // Adjust panning to keep the point under the cursor stable
+    const mouseX = (x / canvas.width) * 2 - 1;
+    const mouseY = (y / canvas.height) * 2 - 1;
 
-    drawFractal();
+    // Calculate the new pan values
+    const newPanX = panX - (mouseX - panX) * (1 - 1 / zoom);
+    const newPanY = panY - (mouseY - panY) * (1 - 1 / zoom);
+
+    // Apply the new pan values
+    panX = newPanX;
+    panY = newPanY;
+
+    needsRendering = true;
+    requestAnimationFrame(drawFractal);
 }
 
-// Event listener for mouse scroll (zooming)
-canvas.addEventListener('wheel', (e) => {
-    e.preventDefault();
-    updateFractal(e);
-});
+function startPan(e) {
+    isPanning = true;
+    startX = e.clientX - canvas.getBoundingClientRect().left;
+    startY = e.clientY - canvas.getBoundingClientRect().top;
+}
 
-// Initial draw
-drawFractal();
+function panFractal(e) {
+    if (!isPanning) return;
+
+    const x = e.clientX - canvas.getBoundingClientRect().left;
+    const y = e.clientY - canvas.getBoundingClientRect().top;
+
+    const dx = (x - startX) / zoom;
+    const dy = (y - startY) / zoom;
+
+    panX -= dx; // Inverted panning direction
+    panY -= dy; // Inverted panning direction
+
+    startX = x;
+    startY = y;
+
+    needsRendering = true;
+    requestAnimationFrame(drawFractal);
+}
+
+function stopPan() {
+    isPanning = false;
+}
+
+function updateIterations(e) {
+    maxIterations = parseInt(e.target.value, 10);
+    iterationsValue.textContent = maxIterations;
+    needsRendering = true;
+    requestAnimationFrame(drawFractal);
+}
+
+// Initialize the canvas and settings
+function initialize() {
+    // Set the canvas dimensions
+    canvas.width = canvasWidth;
+    canvas.height = canvasHeight;
+
+    // Set initial zoom and pan values to ensure the fractal fits within the canvas
+    zoom = 200; // Adjust this value if necessary
+    panX = 0;
+    panY = 0;
+
+    // Draw the fractal for the first time
+    needsRendering = true;
+    requestAnimationFrame(drawFractal);
+}
+
+iterationsSlider.addEventListener('input', updateIterations);
+canvas.addEventListener('wheel', updateFractalZoom);
+canvas.addEventListener('mousedown', startPan);
+canvas.addEventListener('mousemove', panFractal);
+canvas.addEventListener('mouseup', stopPan);
+canvas.addEventListener('mouseout', stopPan);
+document.getElementById('applyFormula').addEventListener('click', applyFormula);
+
+// Initialize the canvas and fractal display
+initialize();

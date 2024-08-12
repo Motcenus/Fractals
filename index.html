@@ -7,7 +7,19 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <h1>Fractal Plotter</h1>
+    <div id="ui" class="fixed-ui">
+        <label for="formulaInput">Formula:</label>
+        <input id="formulaInput" type="text" value="zx * zx - zy * zy + cx">
+        <button id="applyFormula">Apply Formula</button>
+        
+        <label for="iterationsSlider">Iterations:</label>
+        <input id="iterationsSlider" type="range" min="10" max="1000" value="10">
+        <span id="iterationsValue">10</span>
+        
+        <div id="progressContainer">
+            <div id="progressBar"></div>
+        </div>
+    </div>
     <canvas id="fractalCanvas"></canvas>
     <script src="script.js"></script>
 </body>
