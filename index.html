@@ -3,24 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fractal Plotter</title>
+    <title>Fractal Renderer</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div id="ui" class="fixed-ui">
-        <label for="formulaInput">Formula:</label>
-        <input id="formulaInput" type="text" value="zx * zx - zy * zy + cx">
-        <button id="applyFormula">Apply Formula</button>
-        
-        <label for="iterationsSlider">Iterations:</label>
-        <input id="iterationsSlider" type="range" min="10" max="1000" value="10">
-        <span id="iterationsValue">10</span>
-        
-        <div id="progressContainer">
-            <div id="progressBar"></div>
+    <div class="container">
+        <div class="controls">
+            <label for="iterationsSlider">Iterations: <span id="iterationsValue">10</span></label>
+            <input type="range" id="iterationsSlider" min="10" max="1000" value="10">
+            <label for="formulaInput">Formula:</label>
+            <input type="text" id="formulaInput" value="zx * zx + zy * zy < 4 ? 1 : 0">
+            <button id="applyFormula">Apply Formula</button>
+            <button id="resetView">Reset View</button>
+            <div id="progressBarContainer">
+                <div id="progressBar"></div>
+            </div>
         </div>
+        <canvas id="fractalCanvas"></canvas>
     </div>
-    <canvas id="fractalCanvas"></canvas>
     <script src="script.js"></script>
+    <script src="fractalWorker.js" type="application/javascript"></script>
 </body>
 </html>

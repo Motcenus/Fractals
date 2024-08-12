@@ -1,45 +1,45 @@
 /* styles.css */
+
 body {
     margin: 0;
     font-family: Arial, sans-serif;
+    background-color: #f0f0f0;
 }
 
-.fixed-ui {
+.container {
+    display: flex;
+}
+
+.controls {
+    width: 300px;
+    padding: 20px;
+    background: #fff;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
     position: fixed;
-    top: 0;
-    left: 0;
-    width: 250px;
-    height: 100vh; /* Full height */
-    padding: 10px;
-    background-color: rgba(255, 255, 255, 0.9);
-    border-right: 2px solid #ccc;
-    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.2);
-    z-index: 10;
-    overflow-y: auto; /* Enable scrolling if content overflows */
+    height: 100%;
+    overflow-y: auto;
 }
 
-#fractalCanvas {
-    margin-left: 250px; /* Ensure canvas is not covered */
-    width: calc(100% - 250px);
-    height: 100vh;
+canvas {
+    flex-grow: 1;
+    border: 1px solid #ddd;
     background-color: #000;
 }
 
-#progressContainer {
+#progressBarContainer {
     margin-top: 10px;
+    background: #ddd;
     height: 20px;
-    background-color: #f3f3f3;
-    border: 1px solid #ccc;
     border-radius: 5px;
     overflow: hidden;
 }
 
 #progressBar {
+    background: #4caf50;
     height: 100%;
     width: 0;
-    background-color: #4caf50;
     text-align: center;
+    color: #fff;
     line-height: 20px;
-    color: white;
-    transition: width 0.2s;
+    border-radius: 5px;
 }
